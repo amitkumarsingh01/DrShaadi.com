@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: drshaadi_mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: drshaadi
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - drshaadi_network
+
+  api:
+    build: .
+    container_name: drshaadi_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      MONGODB_URL: mongodb://admin:password@mongodb:27017/drshaadi?authSource=admin
+      DATABASE_NAME: drshaadi
+      SECRET_KEY: your-secret-key-change-in-production
+      DEBUG: "true"
+    depends_on:
+      - mongodb
+    networks:
+      - drshaadi_network
+    volumes:
+      - .:/app
+    command: python run.py
+
+volumes:
+  mongodb_data:
+
+networks:
+  drshaadi_network:
+    driver: bridge
